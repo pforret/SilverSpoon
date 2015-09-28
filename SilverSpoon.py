@@ -27,6 +27,7 @@ def get_command(command):
 	print("Reading from [%s]" % command)
 	for section in config.sections():
 		if section == command:
+			# command was found - now execute it
 			for options in config.options(command):
 				print("- %s = %s" % (options,config.get(section, options)))
 	return "Executing [%s]" % command
