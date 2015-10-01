@@ -6,6 +6,10 @@ Set up an API for Raspberry Pi, based on a simple .INI config file
 
 * SilverSpoon.py - the program
 * config/services.ini - the config file
+* install flask:
+
+	sudo apt-get install python-pip # if pip not installed yet
+	sudo pip install flask
 
 ## Start
 

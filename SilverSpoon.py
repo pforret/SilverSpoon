@@ -1,7 +1,6 @@
 #!flask/bin/python
-from flask import Flask, jsonify
-import ConfigParser
-import io
+from flask import Flask, jsonify, request
+import ConfigParser, io, re, requests, os,subprocess
 
 
 app = Flask(__name__)
@@ -24,8 +23,12 @@ def index():
 	for section in config.sections():
 		html=html + "<fieldset><legend>Command = [<a href='/%s'>%s</a>]</legend><form action='/%s'><dl>\n" % (section,section,section)
 		for option in config.options(section):
-			if option == 'command':
-				html=html + "<dt>command line</dt><dd><code>&gt; %s</code></dd>\n" % (config.get(section, option))
+			p = re.compile( '(\[\d+\])')
+			short=p.sub('',option)
+			if short == 'command':
+				key=option
+				val=config.get(section, option)
+				html=html + "<dt>command line</dt><dd><code>&gt; %s</code></dd>\n" % val
 			else:
 				key=option
 				val=config.get(section, option)
@@ -36,14 +39,40 @@ def index():
 
 @app.route('/<command>',methods=['GET'])
 def get_command(command):
+	commands=[] # array
 	for section in config.sections():
 		if section == command:
 			# first take default settings
-			for options in config.options(command):
-				print("- %s = %s" % (options,config.get(section, options)))
+			params={} # dictionary
+			for key in config.options(command):
+				p = re.compile( '(\[\d+\])')
+				short=p.sub('',key)
+				if short == 'command':
+					val=config.get(section, key)
+					commands.append(val)
+				else:
+					val=config.get(section, key)
+					params[key]=val
 			# then take URL params
-			# check for command line and execute
-			# check for command URL and execute
+			for key in request.args:
+				val=request.args.get(key)
+				params[key]=val
+			for key in request.form:
+				val=request.form.get(key)
+				params[key]=val
+			## now execute
+			for command in commands:
+				#print "before:",command
+				for key in params:
+					val=params[key]
+					command=command.replace("{%s}"%key,val)
+				if command.startswith('http://') or command.startswith("https://"):
+					print "Call URL: [%s]" % command
+					r = requests.get(command)
+				else:
+					print "subprocess: [%s]" % command
+					os.system(command)
+
 	return "Executing [%s]" % command
 
 
