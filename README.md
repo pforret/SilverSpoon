@@ -8,8 +8,9 @@ Set up an API for Raspberry Pi, based on a simple .INI config file
 * config/services.ini - the config file
 * install flask:
 
-	sudo apt-get install python-pip # if pip not installed yet
+	sudo apt-get install python-pip
 	sudo pip install flask
+	sudo pip install requests
 
 ## Start
 
